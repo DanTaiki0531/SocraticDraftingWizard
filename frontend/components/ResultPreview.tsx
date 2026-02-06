@@ -1,37 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Copy, Check, Home } from 'lucide-react';
-import { TagSelector } from './TagSelector';
-import { saveDraftTags } from '../lib/api';
+
 
 interface ResultPreviewProps {
   markdown: string;
-  draftId: string;
-  onReset: () => void;
   onGoHome: () => void;
 }
 
-export function ResultPreview({ markdown, draftId, onReset, onGoHome }: ResultPreviewProps) {
+export function ResultPreview({ markdown, onGoHome }: ResultPreviewProps) {
   const [copied, setCopied] = useState(false);
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
-  const [isSavingTags, setIsSavingTags] = useState(false);
 
-  // タグが変更されたら自動保存
-  useEffect(() => {
-    if (draftId && selectedTagIds.length >= 0) {
-      const saveTagsDebounced = setTimeout(async () => {
-        try {
-          setIsSavingTags(true);
-          await saveDraftTags(draftId, selectedTagIds);
-        } catch (err) {
-          console.error('Failed to save tags:', err);
-        } finally {
-          setIsSavingTags(false);
-        }
-      }, 500);
-
-      return () => clearTimeout(saveTagsDebounced);
-    }
-  }, [selectedTagIds, draftId]);
 
   const handleCopy = async () => {
     try {
@@ -124,7 +102,7 @@ export function ResultPreview({ markdown, draftId, onReset, onGoHome }: ResultPr
           <div className="flex items-center gap-4">
             <button
               onClick={onGoHome}
-              className="flex items-center gap-2 px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground dark:text-theme-foreground transition-colors"
             >
               <Home className="w-4 h-4" />
               <span>ホームに戻る</span>
@@ -152,18 +130,7 @@ export function ResultPreview({ markdown, draftId, onReset, onGoHome }: ResultPr
         </div>
       </header>
 
-      {/* Tag Selector */}
-      <div className="bg-theme-surface border-b border-theme-border px-8 py-4">
-        <div className="max-w-7xl mx-auto flex items-center gap-4">
-          <TagSelector
-            selectedTagIds={selectedTagIds}
-            onTagsChange={setSelectedTagIds}
-          />
-          {isSavingTags && (
-            <span className="text-xs text-theme-foreground-muted">保存中...</span>
-          )}
-        </div>
-      </div>
+
 
       {/* Main Content */}
       <main className="flex-1 overflow-hidden">

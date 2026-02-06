@@ -62,10 +62,11 @@ function CategoryItem({ category, onSelect, getIcon }: { category: Category; onS
           {category.tags.slice(0, 3).map((tag) => (
             <span
               key={tag.id}
-              className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium"
+              className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium dark:brightness-125 dark:saturate-150 transition-all border border-transparent dark:border-opacity-30"
               style={{
                 backgroundColor: `${tag.color}20`,
                 color: tag.color,
+                borderColor: tag.color,
               }}
             >
               {tag.name}
@@ -132,7 +133,16 @@ export function HomePage({ onSelectCategory, onCustomize }: HomePageProps) {
       {/* Header */}
       <header className="py-6 px-8 border-b border-theme-border bg-theme-surface flex items-center justify-between sticky top-0 z-30 shadow-sm">
         <h1 className="text-xl font-semibold text-theme-foreground">Socratic Drafting Wizard</h1>
-        <ThemeSelector />
+        <div className="flex items-center gap-4">
+          <button
+            onClick={onCustomize}
+            className="flex items-center gap-2 px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground dark:text-theme-foreground transition-colors"
+          >
+            <Settings className="w-4 h-4" />
+            <span>カスタマイズ</span>
+          </button>
+          <ThemeSelector />
+        </div>
       </header>
 
       {/* Main Content */}
@@ -199,16 +209,7 @@ export function HomePage({ onSelectCategory, onCustomize }: HomePageProps) {
             </div>
           )}
 
-          {/* Customize Button */}
-          <div className="flex justify-center">
-            <button
-              onClick={onCustomize}
-              className="flex items-center gap-3 px-8 py-4 bg-theme-surface border-2 border-theme-primary text-theme-primary rounded-xl hover:bg-theme-primary hover:text-theme-primary-foreground transition-all duration-200 font-medium shadow-sm hover:shadow-md"
-            >
-              <Settings className="w-5 h-5" />
-              <span>質問をカスタマイズする</span>
-            </button>
-          </div>
+
         </div>
       </main>
     </div>
