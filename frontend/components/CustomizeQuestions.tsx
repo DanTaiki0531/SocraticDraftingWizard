@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, ArrowLeft, BookOpen, Code, Lightbulb, Settings, Home, Folder, X, Tag } from 'lucide-react';
-import { fetchTemplates, createCategory, deleteCategory, Category } from '../lib/api';
+import { Plus, Trash2, ArrowLeft, BookOpen, Code, Lightbulb, Settings, Home, Folder, X, Tag, GripVertical } from 'lucide-react';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, rectSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { fetchTemplates, createCategory, deleteCategory, reorderCategories, Category } from '../lib/api';
 
 interface CustomizeQuestionsProps {
   onSelectCategory: (category: string) => void;
@@ -22,6 +25,75 @@ const categoryEmojis: Record<string, string> = {
   custom: '💡',
 };
 
+// Sortable Category Item Component
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function SortableCategoryEditItem({ category, onSelect, onEditTags, onDelete, getIcon, getEmoji }: any) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: category.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : 1,
+    opacity: isDragging ? 0.8 : 1,
+    position: 'relative' as const,
+  };
+
+  const Icon = getIcon(category.id);
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="bg-theme-surface rounded-2xl p-6 shadow-sm border border-theme-border relative group"
+    >
+      {/* Drag Handle */}
+      <div {...attributes} {...listeners} className="absolute top-4 left-4 p-2 cursor-grab active:cursor-grabbing text-theme-foreground-muted hover:text-theme-foreground bg-theme-bg/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-20 hover:bg-theme-muted">
+        <GripVertical className="w-5 h-5" />
+      </div>
+
+      {/* 削除ボタン */}
+      <button
+        onClick={(e) => onDelete(category.id, e)}
+        className="absolute top-4 right-4 p-2 text-theme-foreground-muted hover:text-theme-error transition-colors rounded-lg hover:bg-theme-muted z-10"
+        title="カテゴリを削除"
+      >
+        <Trash2 className="w-4 h-4" />
+      </button>
+
+      <div className="flex items-center gap-3 mb-4 pl-8"> {/* Added padding for handle */}
+        <div className="w-12 h-12 rounded-xl bg-theme-muted flex items-center justify-center">
+          <Icon className="w-6 h-6 text-theme-primary" />
+        </div>
+        <span className="text-2xl">{getEmoji(category.id)}</span>
+      </div>
+      <h3 className="text-lg font-semibold text-theme-foreground mb-1">
+        {category.name}
+      </h3>
+      <p className="text-sm text-theme-foreground-muted mb-4">
+        {category.description || 'カスタムカテゴリ'}
+      </p>
+
+      {/* アクションボタン */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => onSelect(category.id)}
+          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-theme-primary text-theme-primary-foreground rounded-lg hover:opacity-90 transition-opacity text-sm font-medium"
+        >
+          <Settings className="w-4 h-4" />
+          <span>質問編集</span>
+        </button>
+        <button
+          onClick={() => onEditTags(category.id, category.name)}
+          className="flex items-center justify-center gap-2 px-3 py-2 bg-theme-muted text-theme-foreground rounded-lg hover:bg-theme-border transition-colors text-sm font-medium"
+        >
+          <Tag className="w-4 h-4" />
+          <span>タグ</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function CustomizeQuestions({ onSelectCategory, onEditTags, onBack, onGoHome }: CustomizeQuestionsProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -30,6 +102,12 @@ export function CustomizeQuestions({ onSelectCategory, onEditTags, onBack, onGoH
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryDescription, setNewCategoryDescription] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+
+  // DnD Sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   // カテゴリを読み込む
   const loadCategories = async () => {
@@ -48,6 +126,27 @@ export function CustomizeQuestions({ onSelectCategory, onEditTags, onBack, onGoH
   useEffect(() => {
     loadCategories();
   }, []);
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setCategories((items) => {
+        const oldIndex = items.findIndex((i) => i.id === active.id);
+        const newIndex = items.findIndex((i) => i.id === over.id);
+        const newItems = arrayMove(items, oldIndex, newIndex);
+
+        // API呼び出しで順序を保存 (非同期)
+        const updates = newItems.map((item, index) => ({
+          id: item.id,
+          order_index: index,
+        }));
+        reorderCategories(updates).catch(console.error);
+
+        return newItems;
+      });
+    }
+  };
 
   // 新規カテゴリ作成
   const handleCreateCategory = async () => {
@@ -73,7 +172,7 @@ export function CustomizeQuestions({ onSelectCategory, onEditTags, onBack, onGoH
 
   // カテゴリ削除
   const handleDeleteCategory = async (categoryId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+    e.stopPropagation(); // 念の為
 
     if (!confirm('このカテゴリを削除しますか？質問も全て削除されます。')) {
       return;
@@ -138,73 +237,39 @@ export function CustomizeQuestions({ onSelectCategory, onEditTags, onBack, onGoH
             <div className="text-center text-theme-foreground-muted">読み込み中...</div>
           ) : (
             <>
-              <div className="grid md:grid-cols-3 gap-6">
-                {categories.map((category) => {
-                  const Icon = getIcon(category.id);
-                  return (
-                    <div
-                      key={category.id}
-                      className="bg-theme-surface rounded-2xl p-6 shadow-sm border border-theme-border relative"
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext items={categories.map(c => c.id)} strategy={rectSortingStrategy}>
+                  <div className="grid md:grid-cols-3 gap-6">
+                    {categories.map((category) => (
+                      <SortableCategoryEditItem
+                        key={category.id}
+                        category={category}
+                        onSelect={onSelectCategory}
+                        onEditTags={onEditTags}
+                        onDelete={handleDeleteCategory}
+                        getIcon={getIcon}
+                        getEmoji={getEmoji}
+                      />
+                    ))}
+
+                    {/* 新規カテゴリ追加ボタン (DnD対象外) */}
+                    <button
+                      onClick={() => setShowCreateModal(true)}
+                      className="bg-theme-surface rounded-2xl p-8 shadow-sm border-2 border-dashed border-theme-border hover:border-theme-primary transition-all duration-200 text-center group"
                     >
-                      {/* 削除ボタン */}
-                      <button
-                        onClick={(e) => handleDeleteCategory(category.id, e)}
-                        className="absolute top-4 right-4 p-2 text-theme-foreground-muted hover:text-theme-error transition-colors rounded-lg hover:bg-theme-muted"
-                        title="カテゴリを削除"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-12 h-12 rounded-xl bg-theme-muted flex items-center justify-center">
-                          <Icon className="w-6 h-6 text-theme-primary" />
-                        </div>
-                        <span className="text-2xl">{getEmoji(category.id)}</span>
+                      <div className="w-14 h-14 rounded-xl bg-theme-muted flex items-center justify-center mx-auto mb-4 group-hover:bg-theme-primary transition-colors">
+                        <Plus className="w-7 h-7 text-theme-primary group-hover:text-theme-primary-foreground transition-colors" />
                       </div>
-                      <h3 className="text-lg font-semibold text-theme-foreground mb-1">
-                        {category.name}
+                      <h3 className="text-xl font-semibold text-theme-foreground mb-2">
+                        新規カテゴリ
                       </h3>
-                      <p className="text-sm text-theme-foreground-muted mb-4">
-                        {category.description || 'カスタムカテゴリ'}
+                      <p className="text-theme-foreground-muted leading-relaxed">
+                        独自のカテゴリを作成
                       </p>
-
-                      {/* アクションボタン */}
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => onSelectCategory(category.id)}
-                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-theme-primary text-theme-primary-foreground rounded-lg hover:opacity-90 transition-opacity text-sm font-medium"
-                        >
-                          <Settings className="w-4 h-4" />
-                          <span>質問編集</span>
-                        </button>
-                        <button
-                          onClick={() => onEditTags(category.id, category.name)}
-                          className="flex items-center justify-center gap-2 px-3 py-2 bg-theme-muted text-theme-foreground rounded-lg hover:bg-theme-border transition-colors text-sm font-medium"
-                        >
-                          <Tag className="w-4 h-4" />
-                          <span>タグ</span>
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-
-                {/* 新規カテゴリ追加ボタン */}
-                <button
-                  onClick={() => setShowCreateModal(true)}
-                  className="bg-theme-surface rounded-2xl p-8 shadow-sm border-2 border-dashed border-theme-border hover:border-theme-primary transition-all duration-200 text-center group"
-                >
-                  <div className="w-14 h-14 rounded-xl bg-theme-muted flex items-center justify-center mx-auto mb-4 group-hover:bg-theme-primary transition-colors">
-                    <Plus className="w-7 h-7 text-theme-primary group-hover:text-theme-primary-foreground transition-colors" />
+                    </button>
                   </div>
-                  <h3 className="text-xl font-semibold text-theme-foreground mb-2">
-                    新規カテゴリ
-                  </h3>
-                  <p className="text-theme-foreground-muted leading-relaxed">
-                    独自のカテゴリを作成
-                  </p>
-                </button>
-              </div>
+                </SortableContext>
+              </DndContext>
             </>
           )}
 
@@ -213,6 +278,7 @@ export function CustomizeQuestions({ onSelectCategory, onEditTags, onBack, onGoH
             <h3 className="font-semibold text-theme-foreground mb-2">💡 カスタマイズについて</h3>
             <ul className="text-sm text-theme-foreground-muted space-y-1">
               <li>• 各カテゴリーの質問を自由に編集できます</li>
+              <li>• カード左上のハンドルでカテゴリの並べ替えが可能です（新規！）</li>
               <li>• 質問の追加、削除、順序変更が可能です</li>
               <li>• 新しいカテゴリを作成して独自の質問セットを構築できます</li>
               <li>• デフォルトカテゴリ（学術論文・技術書・カスタムノート）は削除できません</li>
