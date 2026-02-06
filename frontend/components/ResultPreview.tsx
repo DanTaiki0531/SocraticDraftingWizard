@@ -118,7 +118,7 @@ export function ResultPreview({ markdown, draftId, onReset, onGoHome }: ResultPr
   return (
     <div className="min-h-screen flex flex-col bg-theme-bg">
       {/* Header */}
-      <header className="bg-theme-surface border-b border-theme-border px-8 py-6">
+      <header className="bg-theme-surface border-b border-theme-border px-8 py-6 sticky top-0 z-30 shadow-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <h1 className="text-xl font-semibold text-theme-foreground">構造化された洞察</h1>
           <div className="flex items-center gap-4">

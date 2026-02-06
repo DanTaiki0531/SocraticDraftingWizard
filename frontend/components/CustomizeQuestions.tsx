@@ -201,7 +201,7 @@ export function CustomizeQuestions({ onSelectCategory, onEditTags, onBack, onGoH
       )}
 
       {/* Header */}
-      <header className="bg-theme-surface border-b border-theme-border px-8 py-6">
+      <header className="bg-theme-surface border-b border-theme-border px-8 py-6 sticky top-0 z-30 shadow-sm">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
