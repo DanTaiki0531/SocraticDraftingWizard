@@ -66,8 +66,8 @@ export function HomePage({ onSelectCategory, onCustomize }: HomePageProps) {
                     key={category.id}
                     onClick={() => onSelectCategory(category.id)}
                     className={`bg-theme-surface rounded-2xl p-8 shadow-sm border transition-all duration-200 text-left group relative ${hasNoQuestions
-                        ? 'border-orange-300 opacity-75'
-                        : 'border-theme-border hover:shadow-md hover:border-theme-border-hover'
+                      ? 'border-orange-300 opacity-75'
+                      : 'border-theme-border hover:shadow-md hover:border-theme-border-hover'
                       }`}
                   >
                     {/* 質問なし警告バッジ */}
@@ -77,12 +77,12 @@ export function HomePage({ onSelectCategory, onCustomize }: HomePageProps) {
                       </div>
                     )}
                     <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-colors ${hasNoQuestions
-                        ? 'bg-orange-100'
-                        : 'bg-theme-muted group-hover:bg-theme-primary'
+                      ? 'bg-orange-100'
+                      : 'bg-theme-muted group-hover:bg-theme-primary'
                       }`}>
                       <Icon className={`w-7 h-7 transition-colors ${hasNoQuestions
-                          ? 'text-orange-400'
-                          : 'text-theme-primary group-hover:text-theme-primary-foreground'
+                        ? 'text-orange-400'
+                        : 'text-theme-primary group-hover:text-theme-primary-foreground'
                         }`} />
                     </div>
                     <h3 className="text-xl font-semibold text-theme-foreground mb-2">
@@ -95,6 +95,28 @@ export function HomePage({ onSelectCategory, onCustomize }: HomePageProps) {
                       <p className="text-xs text-theme-foreground-muted mt-2">
                         {category.question_count}個の質問
                       </p>
+                    )}
+                    {/* タグ表示 */}
+                    {category.tags && category.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-3">
+                        {category.tags.slice(0, 3).map((tag) => (
+                          <span
+                            key={tag.id}
+                            className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium"
+                            style={{
+                              backgroundColor: `${tag.color}20`,
+                              color: tag.color,
+                            }}
+                          >
+                            {tag.name}
+                          </span>
+                        ))}
+                        {category.tags.length > 3 && (
+                          <span className="text-xs text-theme-foreground-muted">
+                            +{category.tags.length - 3}
+                          </span>
+                        )}
+                      </div>
                     )}
                   </button>
                 );

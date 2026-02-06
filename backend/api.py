@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
-from backend.models import GenerateRequest, GenerateResponse, TemplateUpdate, QuestionBase, CategoryCreate, CategoryResponse
+from backend.models import GenerateRequest, GenerateResponse, TemplateUpdate, QuestionBase, CategoryCreate, CategoryResponse, Tag, TagCreate
 from backend.database import supabase
 import uuid
 from datetime import datetime
@@ -24,12 +24,22 @@ async def get_templates():
         questions_response = supabase.table("questions").select("id", count="exact").eq("template_id", row["id"]).execute()
         question_count = questions_response.count if questions_response.count is not None else 0
         
+        # 各カテゴリのタグを取得
+        category_tags_response = supabase.table("category_tags").select("tag_id").eq("category_id", row["category_id"]).execute()
+        tag_ids = [ct["tag_id"] for ct in category_tags_response.data]
+        
+        tags = []
+        if tag_ids:
+            tags_response = supabase.table("tags").select("id, name, color").in_("id", tag_ids).execute()
+            tags = [{"id": t["id"], "name": t["name"], "color": t["color"]} for t in tags_response.data]
+        
         categories.append({
             "id": row["category_id"],
             "name": row["name"],
             "description": row.get("description"),
             "is_default": row["category_id"] in DEFAULT_CATEGORIES,
-            "question_count": question_count
+            "question_count": question_count,
+            "tags": tags
         })
     
     return {"categories": categories}
@@ -180,3 +190,101 @@ async def generate_markdown(request: GenerateRequest):
         markdown=markdown,
         log_id=log_id
     )
+
+
+@router.get("/tags")
+async def get_tags():
+    """利用可能なタグ一覧を取得"""
+    response = supabase.table("tags").select("id, name, color").order("name").execute()
+    
+    tags = [
+        Tag(id=row["id"], name=row["name"], color=row["color"])
+        for row in response.data
+    ]
+    return {"tags": tags}
+
+
+@router.post("/tags", response_model=Tag)
+async def create_tag(tag: TagCreate):
+    """新規タグを作成"""
+    # 既存チェック
+    existing = supabase.table("tags").select("id").eq("name", tag.name).execute()
+    if existing.data:
+        raise HTTPException(status_code=400, detail="このタグ名は既に存在します")
+    
+    new_tag = {
+        "id": str(uuid.uuid4()),
+        "name": tag.name,
+        "color": tag.color
+    }
+    
+    supabase.table("tags").insert(new_tag).execute()
+    
+    return Tag(id=new_tag["id"], name=new_tag["name"], color=new_tag["color"])
+
+
+@router.post("/drafts/{draft_id}/tags")
+async def add_tags_to_draft(draft_id: str, tag_ids: List[str]):
+    """ドラフトにタグを関連付け"""
+    # ドラフト存在チェック
+    draft_response = supabase.table("generation_logs").select("id").eq("id", draft_id).execute()
+    if not draft_response.data:
+        raise HTTPException(status_code=404, detail="Draft not found")
+    
+    # 既存のタグを削除
+    supabase.table("draft_tags").delete().eq("draft_id", draft_id).execute()
+    
+    # 新しいタグを追加
+    if tag_ids:
+        draft_tags = [
+            {
+                "id": str(uuid.uuid4()),
+                "draft_id": draft_id,
+                "tag_id": tag_id
+            }
+            for tag_id in tag_ids
+        ]
+        supabase.table("draft_tags").insert(draft_tags).execute()
+    
+    return {"status": "success", "draft_id": draft_id, "tag_count": len(tag_ids)}
+
+
+@router.get("/categories/{category_id}/tags")
+async def get_category_tags(category_id: str):
+    """カテゴリに設定されているタグを取得"""
+    response = supabase.table("category_tags").select("tag_id").eq("category_id", category_id).execute()
+    
+    tag_ids = [row["tag_id"] for row in response.data]
+    
+    if not tag_ids:
+        return {"tags": []}
+    
+    # タグの詳細を取得
+    tags_response = supabase.table("tags").select("id, name, color").in_("id", tag_ids).execute()
+    
+    tags = [
+        Tag(id=row["id"], name=row["name"], color=row["color"])
+        for row in tags_response.data
+    ]
+    return {"tags": tags}
+
+
+@router.post("/categories/{category_id}/tags")
+async def set_category_tags(category_id: str, tag_ids: List[str]):
+    """カテゴリにタグを設定"""
+    # 既存のタグを削除
+    supabase.table("category_tags").delete().eq("category_id", category_id).execute()
+    
+    # 新しいタグを追加
+    if tag_ids:
+        category_tags = [
+            {
+                "id": str(uuid.uuid4()),
+                "category_id": category_id,
+                "tag_id": tag_id
+            }
+            for tag_id in tag_ids
+        ]
+        supabase.table("category_tags").insert(category_tags).execute()
+    
+    return {"status": "success", "category_id": category_id, "tag_count": len(tag_ids)}

@@ -1,14 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Copy, Check, Home } from 'lucide-react';
+import { TagSelector } from './TagSelector';
+import { saveDraftTags } from '../lib/api';
 
 interface ResultPreviewProps {
   markdown: string;
+  draftId: string;
   onReset: () => void;
   onGoHome: () => void;
 }
 
-export function ResultPreview({ markdown, onReset, onGoHome }: ResultPreviewProps) {
+export function ResultPreview({ markdown, draftId, onReset, onGoHome }: ResultPreviewProps) {
   const [copied, setCopied] = useState(false);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [isSavingTags, setIsSavingTags] = useState(false);
+
+  // タグが変更されたら自動保存
+  useEffect(() => {
+    if (draftId && selectedTagIds.length >= 0) {
+      const saveTagsDebounced = setTimeout(async () => {
+        try {
+          setIsSavingTags(true);
+          await saveDraftTags(draftId, selectedTagIds);
+        } catch (err) {
+          console.error('Failed to save tags:', err);
+        } finally {
+          setIsSavingTags(false);
+        }
+      }, 500);
+
+      return () => clearTimeout(saveTagsDebounced);
+    }
+  }, [selectedTagIds, draftId]);
 
   const handleCopy = async () => {
     try {
@@ -27,7 +50,7 @@ export function ResultPreview({ markdown, onReset, onGoHome }: ResultPreviewProp
         document.body.appendChild(textArea);
         textArea.focus();
         textArea.select();
-        
+
         try {
           document.execCommand('copy');
           setCopied(true);
@@ -50,7 +73,7 @@ export function ResultPreview({ markdown, onReset, onGoHome }: ResultPreviewProp
       document.body.appendChild(textArea);
       textArea.focus();
       textArea.select();
-      
+
       try {
         document.execCommand('copy');
         setCopied(true);
@@ -108,11 +131,10 @@ export function ResultPreview({ markdown, onReset, onGoHome }: ResultPreviewProp
             </button>
             <button
               onClick={handleCopy}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
-                copied
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${copied
                   ? 'bg-[#7C9885] text-white'
                   : 'bg-[#8B8680] text-white hover:bg-[#6B6560]'
-              }`}
+                }`}
             >
               {copied ? (
                 <>
@@ -129,6 +151,19 @@ export function ResultPreview({ markdown, onReset, onGoHome }: ResultPreviewProp
           </div>
         </div>
       </header>
+
+      {/* Tag Selector */}
+      <div className="bg-white border-b border-[#D4D1CC] px-8 py-4">
+        <div className="max-w-7xl mx-auto flex items-center gap-4">
+          <TagSelector
+            selectedTagIds={selectedTagIds}
+            onTagsChange={setSelectedTagIds}
+          />
+          {isSavingTags && (
+            <span className="text-xs text-gray-400">保存中...</span>
+          )}
+        </div>
+      </div>
 
       {/* Main Content */}
       <main className="flex-1 overflow-hidden">
