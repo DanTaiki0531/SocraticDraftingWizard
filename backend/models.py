@@ -32,3 +32,13 @@ class CategoryResponse(BaseModel):
     description: Optional[str] = None
     is_default: bool = False
 
+
+class Tag(BaseModel):
+    id: str
+    name: str
+    color: str
+
+
+class TagCreate(BaseModel):
+    name: str
+    color: Optional[str] = "#8B8680"

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, ArrowLeft, BookOpen, Code, Lightbulb, Settings, Home, Folder, X } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, BookOpen, Code, Lightbulb, Settings, Home, Folder, X, Tag } from 'lucide-react';
 import { fetchTemplates, createCategory, deleteCategory, Category } from '../lib/api';
 
 interface CustomizeQuestionsProps {
   onSelectCategory: (category: string) => void;
+  onEditTags: (categoryId: string, categoryName: string) => void;
   onBack: () => void;
   onGoHome: () => void;
 }
@@ -21,7 +22,7 @@ const categoryEmojis: Record<string, string> = {
   custom: '💡',
 };
 
-export function CustomizeQuestions({ onSelectCategory, onBack, onGoHome }: CustomizeQuestionsProps) {
+export function CustomizeQuestions({ onSelectCategory, onEditTags, onBack, onGoHome }: CustomizeQuestionsProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -141,10 +142,9 @@ export function CustomizeQuestions({ onSelectCategory, onBack, onGoHome }: Custo
                 {categories.map((category) => {
                   const Icon = getIcon(category.id);
                   return (
-                    <button
+                    <div
                       key={category.id}
-                      onClick={() => onSelectCategory(category.id)}
-                      className="bg-theme-surface rounded-2xl p-8 shadow-sm border border-theme-border hover:shadow-md hover:border-theme-border-hover transition-all duration-200 text-left group relative"
+                      className="bg-theme-surface rounded-2xl p-6 shadow-sm border border-theme-border relative"
                     >
                       {/* 削除ボタン */}
                       <button
@@ -156,22 +156,36 @@ export function CustomizeQuestions({ onSelectCategory, onBack, onGoHome }: Custo
                       </button>
 
                       <div className="flex items-center gap-3 mb-4">
-                        <div className="w-14 h-14 rounded-xl bg-theme-muted flex items-center justify-center group-hover:bg-theme-primary transition-colors">
-                          <Icon className="w-7 h-7 text-theme-primary group-hover:text-theme-primary-foreground transition-colors" />
+                        <div className="w-12 h-12 rounded-xl bg-theme-muted flex items-center justify-center">
+                          <Icon className="w-6 h-6 text-theme-primary" />
                         </div>
-                        <span className="text-3xl">{getEmoji(category.id)}</span>
+                        <span className="text-2xl">{getEmoji(category.id)}</span>
                       </div>
-                      <h3 className="text-xl font-semibold text-theme-foreground mb-2">
+                      <h3 className="text-lg font-semibold text-theme-foreground mb-1">
                         {category.name}
                       </h3>
-                      <p className="text-theme-foreground-muted leading-relaxed mb-4">
+                      <p className="text-sm text-theme-foreground-muted mb-4">
                         {category.description || 'カスタムカテゴリ'}
                       </p>
-                      <div className="flex items-center gap-2 text-theme-primary font-medium">
-                        <Settings className="w-4 h-4" />
-                        <span>質問を編集</span>
+
+                      {/* アクションボタン */}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => onSelectCategory(category.id)}
+                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-theme-primary text-theme-primary-foreground rounded-lg hover:opacity-90 transition-opacity text-sm font-medium"
+                        >
+                          <Settings className="w-4 h-4" />
+                          <span>質問編集</span>
+                        </button>
+                        <button
+                          onClick={() => onEditTags(category.id, category.name)}
+                          className="flex items-center justify-center gap-2 px-3 py-2 bg-theme-muted text-theme-foreground rounded-lg hover:bg-theme-border transition-colors text-sm font-medium"
+                        >
+                          <Tag className="w-4 h-4" />
+                          <span>タグ</span>
+                        </button>
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
 

@@ -86,3 +86,47 @@ ON CONFLICT DO NOTHING;
 CREATE INDEX IF NOT EXISTS idx_questions_template_id ON questions(template_id);
 CREATE INDEX IF NOT EXISTS idx_questions_order ON questions(order_index);
 CREATE INDEX IF NOT EXISTS idx_generation_logs_category ON generation_logs(category_id);
+
+-- Tags table: stores available tags for drafts
+CREATE TABLE IF NOT EXISTS tags (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT UNIQUE NOT NULL,
+    color TEXT DEFAULT '#8B8680',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Draft tags junction table: many-to-many relationship between drafts and tags
+CREATE TABLE IF NOT EXISTS draft_tags (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    draft_id UUID REFERENCES generation_logs(id) ON DELETE CASCADE,
+    tag_id UUID REFERENCES tags(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(draft_id, tag_id)
+);
+
+-- Insert default tags
+INSERT INTO tags (name, color) VALUES
+    ('重要', '#ef4444'),
+    ('復習', '#f59e0b'),
+    ('完了', '#22c55e'),
+    ('進行中', '#3b82f6'),
+    ('アイデア', '#a855f7'),
+    ('参考資料', '#6b7280')
+ON CONFLICT (name) DO NOTHING;
+
+-- Create indexes for tags
+CREATE INDEX IF NOT EXISTS idx_draft_tags_draft_id ON draft_tags(draft_id);
+CREATE INDEX IF NOT EXISTS idx_draft_tags_tag_id ON draft_tags(tag_id);
+
+-- Category tags junction table: associate tags with categories
+CREATE TABLE IF NOT EXISTS category_tags (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    category_id TEXT NOT NULL,
+    tag_id UUID REFERENCES tags(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(category_id, tag_id)
+);
+
+-- Create index for category_tags
+CREATE INDEX IF NOT EXISTS idx_category_tags_category_id ON category_tags(category_id);
+CREATE INDEX IF NOT EXISTS idx_category_tags_tag_id ON category_tags(tag_id);

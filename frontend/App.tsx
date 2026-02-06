@@ -5,6 +5,7 @@ import { LoadingScreen } from './components/LoadingScreen';
 import { ResultPreview } from './components/ResultPreview';
 import { CustomizeQuestions } from './components/CustomizeQuestions';
 import { QuestionEditor } from './components/QuestionEditor';
+import { TagEditor } from './components/TagEditor';
 import {
   fetchQuestions,
   generateMarkdown as apiGenerateMarkdown,
@@ -13,7 +14,7 @@ import {
   ResponseItem,
 } from './lib/api';
 
-type Screen = 'home' | 'chat' | 'loading' | 'result' | 'customize' | 'edit-questions';
+type Screen = 'home' | 'chat' | 'loading' | 'result' | 'customize' | 'edit-questions' | 'edit-tags';
 type Category = string | null;
 
 interface Message {
@@ -39,6 +40,8 @@ export default function App() {
   const [currentQuestions, setCurrentQuestions] = useState<Question[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
+  const [editingTagCategory, setEditingTagCategory] = useState<{ id: string; name: string } | null>(null);
 
   // Fetch questions when category is selected
   const loadQuestions = async (category: string) => {
@@ -175,6 +178,7 @@ export default function App() {
         });
 
         setGeneratedMarkdown(response.markdown);
+        setCurrentDraftId(response.log_id);
         setCurrentScreen('result');
       } catch (err) {
         setError('Markdownの生成に失敗しました');
@@ -218,7 +222,19 @@ export default function App() {
       {currentScreen === 'customize' && (
         <CustomizeQuestions
           onSelectCategory={handleEditCategory}
+          onEditTags={(categoryId, categoryName) => {
+            setEditingTagCategory({ id: categoryId, name: categoryName });
+            setCurrentScreen('edit-tags');
+          }}
           onBack={() => setCurrentScreen('home')}
+          onGoHome={handleGoHome}
+        />
+      )}
+      {currentScreen === 'edit-tags' && editingTagCategory && (
+        <TagEditor
+          categoryId={editingTagCategory.id}
+          categoryName={editingTagCategory.name}
+          onBack={() => setCurrentScreen('customize')}
           onGoHome={handleGoHome}
         />
       )}
@@ -243,9 +259,10 @@ export default function App() {
         />
       )}
       {currentScreen === 'loading' && <LoadingScreen />}
-      {currentScreen === 'result' && (
+      {currentScreen === 'result' && currentDraftId && (
         <ResultPreview
           markdown={generatedMarkdown}
+          draftId={currentDraftId}
           onReset={handleReset}
           onGoHome={handleGoHome}
         />
