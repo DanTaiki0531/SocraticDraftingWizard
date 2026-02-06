@@ -262,8 +262,6 @@ export default function App() {
       {currentScreen === 'result' && currentDraftId && (
         <ResultPreview
           markdown={generatedMarkdown}
-          draftId={currentDraftId}
-          onReset={handleReset}
           onGoHome={handleGoHome}
         />
       )}

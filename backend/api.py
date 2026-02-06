@@ -98,6 +98,10 @@ async def create_template(category: CategoryCreate):
     import re
     category_id = re.sub(r'[^a-z0-9]+', '-', category.name.lower()).strip('-')
     
+    # スラグが空の場合（日本語のみの場合など）はデフォルト名を使用
+    if not category_id:
+        category_id = "category"
+
     # 既存チェック
     existing = supabase.table("templates").select("id").eq("category_id", category_id).execute()
     if existing.data:

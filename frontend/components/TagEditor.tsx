@@ -20,6 +20,15 @@ const colorOptions = [
     { name: 'ブラウン', value: '#8B8680' },
 ];
 
+const RECOMMENDED_TAGS = [
+    { name: '研究', color: '#3b82f6' },
+    { name: 'webアプリ開発', color: '#22c55e' },
+    { name: 'バックエンド', color: '#6b7280' },
+    { name: 'フロントエンド', color: '#ec4899' },
+    { name: 'AI', color: '#a855f7' },
+    { name: 'ツール', color: '#f59e0b' },
+];
+
 export function TagEditor({ categoryId, categoryName, onBack, onGoHome }: TagEditorProps) {
     const [allTags, setAllTags] = useState<Tag[]>([]);
     const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
@@ -73,20 +82,26 @@ export function TagEditor({ categoryId, categoryName, onBack, onGoHome }: TagEdi
         }
     };
 
-    const handleCreateTag = async () => {
-        if (!newTagName.trim()) return;
+    const handleCreateTag = async (name?: string, color?: string) => {
+        const tagName = name || newTagName;
+        const tagColor = color || newTagColor;
+
+        if (!tagName.trim()) return;
 
         try {
             setIsCreating(true);
-            const newTag = await createTag({ name: newTagName.trim(), color: newTagColor });
+            const newTag = await createTag({ name: tagName.trim(), color: tagColor });
             setAllTags([...allTags, newTag]);
             // 新しいタグを自動で選択
             const newSelectedIds = [...selectedTagIds, newTag.id];
             setSelectedTagIds(newSelectedIds);
             await saveCategoryTags(categoryId, newSelectedIds);
-            setNewTagName('');
-            setNewTagColor('#8B8680');
-            setShowCreateForm(false);
+
+            if (!name) { // Reset form only if manual creation
+                setNewTagName('');
+                setNewTagColor('#8B8680');
+                setShowCreateForm(false);
+            }
         } catch (err: any) {
             setError(err.message || 'タグの作成に失敗しました');
             console.error(err);
@@ -111,7 +126,7 @@ export function TagEditor({ categoryId, categoryName, onBack, onGoHome }: TagEdi
             {/* Header */}
             <header className="bg-theme-surface border-b border-theme-border px-8 py-6">
                 <div className="max-w-3xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-8">
                         <button
                             onClick={onBack}
                             className="flex items-center gap-2 text-theme-foreground-muted hover:text-theme-foreground transition-colors"
@@ -163,10 +178,11 @@ export function TagEditor({ categoryId, categoryName, onBack, onGoHome }: TagEdi
                                             <button
                                                 key={tag.id}
                                                 onClick={() => handleToggleTag(tag.id)}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all hover:opacity-80"
+                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all hover:opacity-80 dark:brightness-200 dark:saturate-200 border border-transparent dark:border-opacity-50"
                                                 style={{
-                                                    backgroundColor: `${tag.color}20`,
+                                                    backgroundColor: `${tag.color}25`,
                                                     color: tag.color,
+                                                    borderColor: tag.color,
                                                 }}
                                             >
                                                 {tag.name}
@@ -183,11 +199,12 @@ export function TagEditor({ categoryId, categoryName, onBack, onGoHome }: TagEdi
                                     利用可能なタグ
                                 </h2>
                                 <div className="flex flex-wrap gap-2 mb-4">
+                                    {/* Existing Available Tags */}
                                     {availableTags.map((tag) => (
                                         <button
                                             key={tag.id}
                                             onClick={() => handleToggleTag(tag.id)}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all hover:opacity-80 border-2 border-dashed"
+                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all hover:opacity-80 border-2 border-dashed dark:brightness-200 dark:saturate-200 dark:border-opacity-50"
                                             style={{
                                                 borderColor: tag.color,
                                                 color: tag.color,
@@ -195,6 +212,22 @@ export function TagEditor({ categoryId, categoryName, onBack, onGoHome }: TagEdi
                                         >
                                             <Plus className="w-3.5 h-3.5" />
                                             {tag.name}
+                                        </button>
+                                    ))}
+
+                                    {/* Recommended Tags that don't exist yet */}
+                                    {RECOMMENDED_TAGS.filter(rt => !allTags.some(t => t.name === rt.name)).map((rt) => (
+                                        <button
+                                            key={rt.name}
+                                            onClick={() => handleCreateTag(rt.name, rt.color)}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all hover:opacity-80 border-2 border-dashed opacity-70 hover:opacity-100 dark:brightness-200 dark:saturate-200 dark:border-opacity-50"
+                                            style={{
+                                                borderColor: rt.color,
+                                                color: rt.color,
+                                            }}
+                                        >
+                                            <Plus className="w-3.5 h-3.5" />
+                                            {rt.name}
                                         </button>
                                     ))}
 
@@ -208,7 +241,7 @@ export function TagEditor({ categoryId, categoryName, onBack, onGoHome }: TagEdi
                                     </button>
                                 </div>
 
-                                {availableTags.length === 0 && !showCreateForm && (
+                                {availableTags.length === 0 && !showCreateForm && RECOMMENDED_TAGS.every(rt => allTags.some(t => t.name === rt.name)) && (
                                     <p className="text-theme-foreground-muted text-sm">
                                         すべてのタグが設定されています。
                                     </p>
@@ -263,10 +296,11 @@ export function TagEditor({ categoryId, categoryName, onBack, onGoHome }: TagEdi
                                                 プレビュー
                                             </label>
                                             <span
-                                                className="inline-flex px-3 py-1 rounded-full text-sm font-medium"
+                                                className="inline-flex px-3 py-1 rounded-full text-sm font-medium dark:brightness-200 dark:saturate-200 border border-transparent dark:border-opacity-50"
                                                 style={{
-                                                    backgroundColor: `${newTagColor}20`,
+                                                    backgroundColor: `${newTagColor}25`,
                                                     color: newTagColor,
+                                                    borderColor: newTagColor,
                                                 }}
                                             >
                                                 {newTagName || 'タグ名'}
@@ -285,7 +319,7 @@ export function TagEditor({ categoryId, categoryName, onBack, onGoHome }: TagEdi
                                                 キャンセル
                                             </button>
                                             <button
-                                                onClick={handleCreateTag}
+                                                onClick={() => handleCreateTag()}
                                                 disabled={!newTagName.trim() || isCreating}
                                                 className="px-6 py-2 bg-theme-primary text-theme-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 transition-opacity font-medium"
                                             >

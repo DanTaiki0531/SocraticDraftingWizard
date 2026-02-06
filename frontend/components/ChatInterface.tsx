@@ -53,7 +53,7 @@ export function ChatInterface({
     }
   };
 
-  const progress = ((currentQuestion + 1) / totalQuestions) * 100;
+  const progress = (currentQuestion / totalQuestions) * 100;
 
   const categoryTitles = {
     academic: '学術論文',
@@ -62,7 +62,7 @@ export function ChatInterface({
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="h-screen flex flex-col overflow-hidden bg-theme-bg">
       {/* Header */}
       <header className="bg-theme-surface border-b border-theme-border sticky top-0 z-30 shadow-sm">
         <div className="px-8 py-6">
@@ -71,9 +71,7 @@ export function ChatInterface({
               Socratic Drafting Wizard
             </h1>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-theme-foreground-muted">
-                {categoryTitles[category as keyof typeof categoryTitles]}
-              </span>
+
               <button
                 onClick={onGoHome}
                 className="flex items-center gap-2 px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground transition-colors"
@@ -125,9 +123,9 @@ export function ChatInterface({
       </main>
 
       {/* Input Area */}
-      <div className="bg-theme-surface border-t border-theme-border px-8 py-6">
+      <div className="bg-theme-surface border-t border-theme-border px-8 py-8">
         <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
-          <div className="flex gap-4">
+          <div className="flex items-end gap-4">
             <div className="flex-1 relative">
               <textarea
                 ref={textareaRef}
@@ -138,6 +136,7 @@ export function ChatInterface({
                 placeholder="ここにあなたの考えを入力してください..."
                 className="w-full px-4 py-3 bg-theme-bg border border-theme-border rounded-xl focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-transparent resize-none min-h-[52px] max-h-[200px] text-theme-foreground placeholder:text-theme-muted-foreground"
                 rows={1}
+                maxLength={3000}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
                     e.preventDefault();
@@ -146,7 +145,10 @@ export function ChatInterface({
                 }}
               />
               <div className="absolute bottom-2 right-2 text-xs text-theme-muted-foreground">
-                {inputValue.length} 文字
+                <span className={inputValue.length > 2700 ? "text-theme-error font-medium" : ""}>
+                  {inputValue.length}
+                </span>
+                <span className="opacity-70"> / 3000</span>
               </div>
             </div>
             <button
@@ -158,9 +160,14 @@ export function ChatInterface({
               <Send className="w-4 h-4" />
             </button>
           </div>
-          <p className="text-xs text-theme-muted-foreground mt-2">
-            Enterで送信、Shift+Enterで改行
-          </p>
+          <div className="flex items-center justify-between mt-3">
+            <span className="text-xs font-medium text-theme-foreground-muted bg-theme-muted px-2 py-1 rounded">
+              {categoryTitles[category as keyof typeof categoryTitles]}
+            </span>
+            <p className="text-xs text-theme-muted-foreground">
+              Enterで送信、Shift+Enterで改行
+            </p>
+          </div>
         </form>
       </div>
     </div>
