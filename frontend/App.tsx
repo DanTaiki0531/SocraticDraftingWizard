@@ -201,7 +201,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F3F0]">
+    <div className="min-h-screen bg-theme-bg">
       {error && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
           {error}

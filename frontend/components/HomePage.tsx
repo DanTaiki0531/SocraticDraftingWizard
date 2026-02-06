@@ -1,4 +1,5 @@
 import { BookOpen, Code, Lightbulb, Settings } from 'lucide-react';
+import { ThemeSelector } from './ThemeSelector';
 
 interface HomePageProps {
   onSelectCategory: (category: 'academic' | 'technical' | 'custom') => void;
@@ -30,17 +31,18 @@ export function HomePage({ onSelectCategory, onCustomize }: HomePageProps) {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="py-6 px-8 border-b border-[#D4D1CC] bg-white">
-        <h1 className="text-xl font-semibold text-[#2D2D2D]">Socratic Drafting Wizard</h1>
+      <header className="py-6 px-8 border-b border-theme-border bg-theme-surface flex items-center justify-between">
+        <h1 className="text-xl font-semibold text-theme-foreground">Socratic Drafting Wizard</h1>
+        <ThemeSelector />
       </header>
 
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-8 py-16">
         <div className="max-w-5xl w-full">
-          <h2 className="text-4xl font-bold text-center text-[#2D2D2D] mb-4">
+          <h2 className="text-4xl font-bold text-center text-theme-foreground mb-4">
             今日は何を探求しますか？
           </h2>
-          <p className="text-center text-[#6B6560] mb-12 text-lg">
+          <p className="text-center text-theme-foreground-muted mb-12 text-lg">
             カテゴリーを選んで構造的な探求を始めましょう
           </p>
 
@@ -49,15 +51,15 @@ export function HomePage({ onSelectCategory, onCustomize }: HomePageProps) {
               <button
                 key={category.id}
                 onClick={() => onSelectCategory(category.id)}
-                className="bg-white rounded-2xl p-8 shadow-sm border border-[#D4D1CC] hover:shadow-md hover:border-[#8B8680] transition-all duration-200 text-left group"
+                className="bg-theme-surface rounded-2xl p-8 shadow-sm border border-theme-border hover:shadow-md hover:border-theme-border-hover transition-all duration-200 text-left group"
               >
-                <div className="w-14 h-14 rounded-xl bg-[#E8E6E3] flex items-center justify-center mb-4 group-hover:bg-[#8B8680] transition-colors">
-                  <category.icon className="w-7 h-7 text-[#8B8680] group-hover:text-white transition-colors" />
+                <div className="w-14 h-14 rounded-xl bg-theme-muted flex items-center justify-center mb-4 group-hover:bg-theme-primary transition-colors">
+                  <category.icon className="w-7 h-7 text-theme-primary group-hover:text-theme-primary-foreground transition-colors" />
                 </div>
-                <h3 className="text-xl font-semibold text-[#2D2D2D] mb-2">
+                <h3 className="text-xl font-semibold text-theme-foreground mb-2">
                   {category.title}
                 </h3>
-                <p className="text-[#6B6560] leading-relaxed">
+                <p className="text-theme-foreground-muted leading-relaxed">
                   {category.description}
                 </p>
               </button>
@@ -68,7 +70,7 @@ export function HomePage({ onSelectCategory, onCustomize }: HomePageProps) {
           <div className="flex justify-center">
             <button
               onClick={onCustomize}
-              className="flex items-center gap-3 px-8 py-4 bg-white border-2 border-[#8B8680] text-[#8B8680] rounded-xl hover:bg-[#8B8680] hover:text-white transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+              className="flex items-center gap-3 px-8 py-4 bg-theme-surface border-2 border-theme-primary text-theme-primary rounded-xl hover:bg-theme-primary hover:text-theme-primary-foreground transition-all duration-200 font-medium shadow-sm hover:shadow-md"
             >
               <Settings className="w-5 h-5" />
               <span>質問をカスタマイズする</span>
