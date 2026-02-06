@@ -276,7 +276,7 @@ export function CustomizeQuestions({ onSelectCategory, onEditTags, onBack, onGoH
           <div className="flex items-center gap-4">
             <button
               onClick={onBack}
-              className="flex items-center gap-2 px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground dark:text-theme-foreground transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>戻る</span>
@@ -286,14 +286,14 @@ export function CustomizeQuestions({ onSelectCategory, onEditTags, onBack, onGoH
           <div className="flex items-center gap-4">
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground dark:text-theme-foreground transition-colors"
             >
               <Plus className="w-4 h-4" />
               <span>新規カテゴリ</span>
             </button>
             <button
               onClick={onGoHome}
-              className="flex items-center gap-2 px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground dark:text-theme-foreground transition-colors"
             >
               <Home className="w-4 h-4" />
               <span>ホーム</span>

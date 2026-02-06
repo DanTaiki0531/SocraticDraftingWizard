@@ -136,7 +136,7 @@ export function HomePage({ onSelectCategory, onCustomize }: HomePageProps) {
         <div className="flex items-center gap-4">
           <button
             onClick={onCustomize}
-            className="flex items-center gap-2 px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground dark:text-theme-foreground transition-colors"
           >
             <Settings className="w-4 h-4" />
             <span>カスタマイズ</span>

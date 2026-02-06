@@ -74,7 +74,7 @@ export function ChatInterface({
 
               <button
                 onClick={onGoHome}
-                className="flex items-center gap-2 px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground dark:text-theme-foreground transition-colors"
               >
                 <Home className="w-4 h-4" />
                 <span>ホーム</span>

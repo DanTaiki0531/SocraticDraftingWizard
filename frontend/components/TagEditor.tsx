@@ -129,7 +129,7 @@ export function TagEditor({ categoryId, categoryName, onBack, onGoHome }: TagEdi
                     <div className="flex items-center gap-8">
                         <button
                             onClick={onBack}
-                            className="flex items-center gap-2 text-theme-foreground-muted hover:text-theme-foreground transition-colors"
+                            className="flex items-center gap-2 text-theme-foreground-muted hover:text-theme-foreground dark:text-theme-foreground transition-colors"
                         >
                             <ArrowLeft className="w-5 h-5" />
                             <span>戻る</span>
@@ -146,7 +146,7 @@ export function TagEditor({ categoryId, categoryName, onBack, onGoHome }: TagEdi
                         {isSaving && <span className="text-sm text-theme-foreground-muted">保存中...</span>}
                         <button
                             onClick={onGoHome}
-                            className="flex items-center gap-2 text-theme-foreground-muted hover:text-theme-foreground transition-colors"
+                            className="flex items-center gap-2 text-theme-foreground-muted hover:text-theme-foreground dark:text-theme-foreground transition-colors"
                         >
                             <Home className="w-4 h-4" />
                             <span>ホーム</span>

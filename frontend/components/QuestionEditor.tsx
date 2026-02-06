@@ -102,7 +102,7 @@ export function QuestionEditor({ category, questions: initialQuestions, onSave, 
             <div className="flex items-center gap-4">
               <button
                 onClick={onBack}
-                className="flex items-center gap-2 px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground dark:text-theme-foreground transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>戻る</span>
@@ -117,7 +117,7 @@ export function QuestionEditor({ category, questions: initialQuestions, onSave, 
             <div className="flex items-center gap-3">
               <button
                 onClick={onGoHome}
-                className="flex items-center gap-2 px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground dark:text-theme-foreground transition-colors"
               >
                 <Home className="w-4 h-4" />
                 <span>ホーム</span>
@@ -125,7 +125,7 @@ export function QuestionEditor({ category, questions: initialQuestions, onSave, 
               {hasChanges && (
                 <button
                   onClick={handleReset}
-                  className="px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground transition-colors"
+                  className="px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground dark:text-theme-foreground transition-colors"
                 >
                   リセット
                 </button>
