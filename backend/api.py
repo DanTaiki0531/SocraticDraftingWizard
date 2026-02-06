@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
-from backend.models import GenerateRequest, GenerateResponse, TemplateUpdate, QuestionBase
+from backend.models import GenerateRequest, GenerateResponse, TemplateUpdate, QuestionBase, CategoryCreate, CategoryResponse
 from backend.database import supabase
 import uuid
 from datetime import datetime
@@ -8,16 +8,82 @@ from datetime import datetime
 router = APIRouter()
 
 
+# デフォルトカテゴリ（削除不可）
+DEFAULT_CATEGORIES = {"academic", "technical", "custom"}
+
+
 @router.get("/templates")
 async def get_templates():
     """利用可能なカテゴリ一覧を取得"""
-    response = supabase.table("templates").select("category_id, name, description").execute()
+    # テンプレートと質問を結合して取得
+    response = supabase.table("templates").select("id, category_id, name, description").execute()
     
-    categories = [
-        {"id": row["category_id"], "name": row["name"], "description": row.get("description")}
-        for row in response.data
-    ]
+    categories = []
+    for row in response.data:
+        # 各カテゴリの質問数を取得
+        questions_response = supabase.table("questions").select("id", count="exact").eq("template_id", row["id"]).execute()
+        question_count = questions_response.count if questions_response.count is not None else 0
+        
+        categories.append({
+            "id": row["category_id"],
+            "name": row["name"],
+            "description": row.get("description"),
+            "is_default": row["category_id"] in DEFAULT_CATEGORIES,
+            "question_count": question_count
+        })
+    
     return {"categories": categories}
+
+
+@router.post("/templates", response_model=CategoryResponse)
+async def create_template(category: CategoryCreate):
+    """新規カテゴリを作成"""
+    # category_idを生成（名前をスラグ化）
+    import re
+    category_id = re.sub(r'[^a-z0-9]+', '-', category.name.lower()).strip('-')
+    
+    # 既存チェック
+    existing = supabase.table("templates").select("id").eq("category_id", category_id).execute()
+    if existing.data:
+        # ユニークにするためにUUIDサフィックスを追加
+        category_id = f"{category_id}-{str(uuid.uuid4())[:8]}"
+    
+    # 新規カテゴリを挿入
+    new_template = {
+        "id": str(uuid.uuid4()),
+        "category_id": category_id,
+        "name": category.name,
+        "description": category.description
+    }
+    
+    supabase.table("templates").insert(new_template).execute()
+    
+    return CategoryResponse(
+        id=category_id,
+        name=category.name,
+        description=category.description,
+        is_default=False
+    )
+
+
+@router.delete("/templates/{category_id}")
+async def delete_template(category_id: str):
+    """カテゴリを削除"""
+    # テンプレートを取得
+    template_response = supabase.table("templates").select("id").eq("category_id", category_id).execute()
+    
+    if not template_response.data:
+        raise HTTPException(status_code=404, detail="Category not found")
+    
+    template_id = template_response.data[0]["id"]
+    
+    # 質問を削除（CASCADE設定があるがexplicitに）
+    supabase.table("questions").delete().eq("template_id", template_id).execute()
+    
+    # テンプレートを削除
+    supabase.table("templates").delete().eq("id", template_id).execute()
+    
+    return {"status": "success", "deleted": category_id}
 
 
 @router.get("/templates/{category_id}")

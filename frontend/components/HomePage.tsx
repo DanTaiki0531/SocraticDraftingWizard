@@ -1,32 +1,40 @@
-import { BookOpen, Code, Lightbulb, Settings } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { BookOpen, Code, Lightbulb, Settings, Folder } from 'lucide-react';
 import { ThemeSelector } from './ThemeSelector';
+import { fetchTemplates, Category } from '../lib/api';
 
 interface HomePageProps {
-  onSelectCategory: (category: 'academic' | 'technical' | 'custom') => void;
+  onSelectCategory: (category: string) => void;
   onCustomize: () => void;
 }
 
+// デフォルトカテゴリのアイコンマッピング
+const categoryIcons: Record<string, typeof BookOpen> = {
+  academic: BookOpen,
+  technical: Code,
+  custom: Lightbulb,
+};
+
 export function HomePage({ onSelectCategory, onCustomize }: HomePageProps) {
-  const categories = [
-    {
-      id: 'academic' as const,
-      icon: BookOpen,
-      title: '学術論文',
-      description: '構造化された学術的な質問で研究論文を分析'
-    },
-    {
-      id: 'technical' as const,
-      icon: Code,
-      title: '技術書',
-      description: '技術的な概念と方法論を分解して理解'
-    },
-    {
-      id: 'custom' as const,
-      icon: Lightbulb,
-      title: 'カスタムノート',
-      description: '柔軟な誘導質問であらゆるトピックを探求'
-    }
-  ];
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetchTemplates();
+        setCategories(response.categories);
+      } catch (err) {
+        console.error('Failed to load categories:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadCategories();
+  }, []);
+
+  const getIcon = (categoryId: string) => categoryIcons[categoryId] || Folder;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -46,25 +54,53 @@ export function HomePage({ onSelectCategory, onCustomize }: HomePageProps) {
             カテゴリーを選んで構造的な探求を始めましょう
           </p>
 
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => onSelectCategory(category.id)}
-                className="bg-theme-surface rounded-2xl p-8 shadow-sm border border-theme-border hover:shadow-md hover:border-theme-border-hover transition-all duration-200 text-left group"
-              >
-                <div className="w-14 h-14 rounded-xl bg-theme-muted flex items-center justify-center mb-4 group-hover:bg-theme-primary transition-colors">
-                  <category.icon className="w-7 h-7 text-theme-primary group-hover:text-theme-primary-foreground transition-colors" />
-                </div>
-                <h3 className="text-xl font-semibold text-theme-foreground mb-2">
-                  {category.title}
-                </h3>
-                <p className="text-theme-foreground-muted leading-relaxed">
-                  {category.description}
-                </p>
-              </button>
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="text-center text-theme-foreground-muted">読み込み中...</div>
+          ) : (
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
+              {categories.map((category) => {
+                const Icon = getIcon(category.id);
+                const hasNoQuestions = !category.question_count || category.question_count === 0;
+                return (
+                  <button
+                    key={category.id}
+                    onClick={() => onSelectCategory(category.id)}
+                    className={`bg-theme-surface rounded-2xl p-8 shadow-sm border transition-all duration-200 text-left group relative ${hasNoQuestions
+                        ? 'border-orange-300 opacity-75'
+                        : 'border-theme-border hover:shadow-md hover:border-theme-border-hover'
+                      }`}
+                  >
+                    {/* 質問なし警告バッジ */}
+                    {hasNoQuestions && (
+                      <div className="absolute top-4 right-4 px-2 py-1 bg-orange-100 text-orange-600 text-xs font-medium rounded-full">
+                        質問なし
+                      </div>
+                    )}
+                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-colors ${hasNoQuestions
+                        ? 'bg-orange-100'
+                        : 'bg-theme-muted group-hover:bg-theme-primary'
+                      }`}>
+                      <Icon className={`w-7 h-7 transition-colors ${hasNoQuestions
+                          ? 'text-orange-400'
+                          : 'text-theme-primary group-hover:text-theme-primary-foreground'
+                        }`} />
+                    </div>
+                    <h3 className="text-xl font-semibold text-theme-foreground mb-2">
+                      {category.name}
+                    </h3>
+                    <p className="text-theme-foreground-muted leading-relaxed">
+                      {category.description || 'カスタムカテゴリ'}
+                    </p>
+                    {!hasNoQuestions && (
+                      <p className="text-xs text-theme-foreground-muted mt-2">
+                        {category.question_count}個の質問
+                      </p>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Customize Button */}
           <div className="flex justify-center">

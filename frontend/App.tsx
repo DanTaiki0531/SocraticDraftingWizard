@@ -14,7 +14,7 @@ import {
 } from './lib/api';
 
 type Screen = 'home' | 'chat' | 'loading' | 'result' | 'customize' | 'edit-questions';
-type Category = 'academic' | 'technical' | 'custom' | null;
+type Category = string | null;
 
 interface Message {
   type: 'system' | 'user';
@@ -57,7 +57,7 @@ export default function App() {
     }
   };
 
-  const handleCategorySelect = async (category: Category) => {
+  const handleCategorySelect = async (category: string) => {
     if (!category) return;
 
     const questions = await loadQuestions(category);

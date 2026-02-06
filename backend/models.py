@@ -21,3 +21,14 @@ class TemplateUpdate(BaseModel):
 class GenerateResponse(BaseModel):
     markdown: str
     log_id: str
+
+class CategoryCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+class CategoryResponse(BaseModel):
+    id: str
+    name: str
+    description: Optional[str] = None
+    is_default: bool = False
+
