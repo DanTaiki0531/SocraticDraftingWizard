@@ -42,3 +42,7 @@ class Tag(BaseModel):
 class TagCreate(BaseModel):
     name: str
     color: Optional[str] = "#8B8680"
+
+
+class CategoryReorderRequest(BaseModel):
+    orders: List[dict]  # [{"id": "category_id", "order_index": 0}, ...]

@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS templates (
     category_id TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
     description TEXT,
+    order_index INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

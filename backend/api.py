@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
-from backend.models import GenerateRequest, GenerateResponse, TemplateUpdate, QuestionBase, CategoryCreate, CategoryResponse, Tag, TagCreate
+from backend.models import GenerateRequest, GenerateResponse, TemplateUpdate, QuestionBase, CategoryCreate, CategoryResponse, Tag, TagCreate, CategoryReorderRequest
 from backend.database import supabase
 import uuid
 from datetime import datetime
@@ -13,15 +13,14 @@ DEFAULT_CATEGORIES = {"academic", "technical", "custom"}
 
 
 @router.get("/templates")
-@router.get("/templates")
 async def get_templates():
     """利用可能なカテゴリ一覧を取得"""
     # 1. テンプレートと質問数を一括取得 (questionsのリレーションを利用)
     # Supabaseのembedding機能を使って質問数を取得したいが、count機能との併用が難しいため
     # まずテンプレートを取得し、並列または効率的なクエリでデータを補完する方針をとる
     
-    # テンプレート取得
-    templates_response = supabase.table("templates").select("id, category_id, name, description").execute()
+    # テンプレート取得 (order_indexでソート)
+    templates_response = supabase.table("templates").select("id, category_id, name, description, order_index, created_at").order("order_index").order("created_at").execute()
     categories_data = templates_response.data
     
     if not categories_data:
@@ -70,12 +69,26 @@ async def get_templates():
             "id": row["category_id"],
             "name": row["name"],
             "description": row.get("description"),
+            "order_index": row.get("order_index", 0),
+            "created_at": row.get("created_at"),
             "is_default": row["category_id"] in DEFAULT_CATEGORIES,
             "question_count": question_counts.get(row["id"], 0),
             "tags": category_tags_map.get(row["category_id"], [])
         })
     
     return {"categories": categories}
+
+
+@router.put("/templates/reorder")
+async def reorder_templates(request: CategoryReorderRequest):
+    """カテゴリの表示順序を更新"""
+    for item in request.orders:
+        supabase.table("templates")\
+            .update({"order_index": item["order_index"]})\
+            .eq("category_id", item["id"])\
+            .execute()
+    
+    return {"status": "success"}
 
 
 @router.post("/templates", response_model=CategoryResponse)
