@@ -92,39 +92,39 @@ export function ResultPreview({ markdown, draftId, onReset, onGoHome }: ResultPr
     return lines.map((line, index) => {
       // H1
       if (line.startsWith('# ')) {
-        return <h1 key={index} className="text-3xl font-bold text-[#2D2D2D] mb-4">{line.slice(2)}</h1>;
+        return <h1 key={index} className="text-3xl font-bold text-theme-foreground mb-4">{line.slice(2)}</h1>;
       }
       // H2
       if (line.startsWith('## ')) {
-        return <h2 key={index} className="text-xl font-semibold text-[#2D2D2D] mt-8 mb-3">{line.slice(3)}</h2>;
+        return <h2 key={index} className="text-xl font-semibold text-theme-foreground mt-8 mb-3">{line.slice(3)}</h2>;
       }
       // Italic
       if (line.startsWith('*') && line.endsWith('*') && !line.startsWith('**')) {
-        return <p key={index} className="text-[#6B6560] italic mb-4">{line.slice(1, -1)}</p>;
+        return <p key={index} className="text-theme-foreground-muted italic mb-4">{line.slice(1, -1)}</p>;
       }
       // Horizontal Rule
       if (line.startsWith('---')) {
-        return <hr key={index} className="my-8 border-[#D4D1CC]" />;
+        return <hr key={index} className="my-8 border-theme-border" />;
       }
       // Empty line
       if (line.trim() === '') {
         return <div key={index} className="h-2" />;
       }
       // Regular paragraph
-      return <p key={index} className="text-[#2D2D2D] leading-relaxed mb-4">{line}</p>;
+      return <p key={index} className="text-theme-foreground leading-relaxed mb-4">{line}</p>;
     });
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-theme-bg">
       {/* Header */}
-      <header className="bg-white border-b border-[#D4D1CC] px-8 py-6">
+      <header className="bg-theme-surface border-b border-theme-border px-8 py-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-[#2D2D2D]">構造化された洞察</h1>
+          <h1 className="text-xl font-semibold text-theme-foreground">構造化された洞察</h1>
           <div className="flex items-center gap-4">
             <button
               onClick={onGoHome}
-              className="flex items-center gap-2 px-4 py-2 text-[#6B6560] hover:text-[#2D2D2D] transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground transition-colors"
             >
               <Home className="w-4 h-4" />
               <span>ホームに戻る</span>
@@ -132,8 +132,8 @@ export function ResultPreview({ markdown, draftId, onReset, onGoHome }: ResultPr
             <button
               onClick={handleCopy}
               className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${copied
-                  ? 'bg-[#7C9885] text-white'
-                  : 'bg-[#8B8680] text-white hover:bg-[#6B6560]'
+                ? 'bg-[#7C9885] text-white'
+                : 'bg-theme-primary text-theme-primary-foreground hover:opacity-90'
                 }`}
             >
               {copied ? (
@@ -153,14 +153,14 @@ export function ResultPreview({ markdown, draftId, onReset, onGoHome }: ResultPr
       </header>
 
       {/* Tag Selector */}
-      <div className="bg-white border-b border-[#D4D1CC] px-8 py-4">
+      <div className="bg-theme-surface border-b border-theme-border px-8 py-4">
         <div className="max-w-7xl mx-auto flex items-center gap-4">
           <TagSelector
             selectedTagIds={selectedTagIds}
             onTagsChange={setSelectedTagIds}
           />
           {isSavingTags && (
-            <span className="text-xs text-gray-400">保存中...</span>
+            <span className="text-xs text-theme-foreground-muted">保存中...</span>
           )}
         </div>
       </div>
@@ -170,8 +170,8 @@ export function ResultPreview({ markdown, draftId, onReset, onGoHome }: ResultPr
         <div className="h-full max-w-7xl mx-auto px-8 py-8">
           <div className="h-full grid md:grid-cols-2 gap-6">
             {/* Rendered Preview */}
-            <div className="bg-white rounded-2xl border border-[#D4D1CC] p-8 overflow-y-auto">
-              <div className="prose prose-sm max-w-none">
+            <div className="bg-theme-surface rounded-2xl border border-theme-border p-8 overflow-y-auto">
+              <div className="prose prose-sm max-w-none text-theme-foreground">
                 {renderMarkdown(markdown)}
               </div>
             </div>
