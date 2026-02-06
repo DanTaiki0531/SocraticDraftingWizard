@@ -12,7 +12,7 @@ interface ChatInterfaceProps {
   totalQuestions: number;
   onSendMessage: (message: string) => void;
   category: string;
-  categoryName: string;
+  categoryName?: string;
   onGoHome: () => void;
 }
 
@@ -83,7 +83,7 @@ export function ChatInterface({
               </button>
             </div>
           </div>
-          
+
           {/* Progress Bar */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
@@ -111,11 +111,10 @@ export function ChatInterface({
               className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[80%] rounded-2xl px-6 py-4 ${
-                  message.type === 'system'
+                className={`max-w-[80%] rounded-2xl px-6 py-4 ${message.type === 'system'
                     ? 'bg-[#E8E6E3] text-[#2D2D2D]'
                     : 'bg-white border border-[#D4D1CC] text-[#2D2D2D]'
-                }`}
+                  }`}
               >
                 <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
               </div>

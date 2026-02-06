@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { Plus, Trash2, ArrowLeft, Save, GripVertical, Home } from 'lucide-react';
 
 interface QuestionEditorProps {
-  category: 'academic' | 'technical' | 'custom';
+  category: string;
   questions: string[];
   onSave: (questions: string[]) => void;
   onBack: () => void;
   onGoHome: () => void;
 }
 
-const categoryInfo = {
+const categoryInfo: Record<string, { title: string; description: string; icon: string }> = {
   academic: {
     title: '学術論文',
     description: '研究論文を分析するための質問セット',
@@ -27,12 +27,18 @@ const categoryInfo = {
   }
 };
 
+const defaultInfo = {
+  title: 'カスタムカテゴリ',
+  description: 'カスタム質問セット',
+  icon: '📁'
+};
+
 export function QuestionEditor({ category, questions: initialQuestions, onSave, onBack, onGoHome }: QuestionEditorProps) {
   const [questions, setQuestions] = useState<string[]>([...initialQuestions]);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
 
-  const info = categoryInfo[category];
+  const info = categoryInfo[category] || defaultInfo;
 
   const handleAddQuestion = () => {
     setQuestions([...questions, '新しい質問を入力してください']);
@@ -40,10 +46,8 @@ export function QuestionEditor({ category, questions: initialQuestions, onSave, 
   };
 
   const handleRemoveQuestion = (index: number) => {
-    if (questions.length > 1) {
-      setQuestions(questions.filter((_, i) => i !== index));
-      setHasChanges(true);
-    }
+    setQuestions(questions.filter((_, i) => i !== index));
+    setHasChanges(true);
   };
 
   const handleQuestionChange = (index: number, value: string) => {
@@ -65,7 +69,7 @@ export function QuestionEditor({ category, questions: initialQuestions, onSave, 
     const draggedQuestion = newQuestions[draggedIndex];
     newQuestions.splice(draggedIndex, 1);
     newQuestions.splice(index, 0, draggedQuestion);
-    
+
     setQuestions(newQuestions);
     setDraggedIndex(index);
     setHasChanges(true);
@@ -87,7 +91,7 @@ export function QuestionEditor({ category, questions: initialQuestions, onSave, 
     setHasChanges(false);
   };
 
-  const isValid = questions.length > 0 && questions.every(q => q.trim() !== '');
+  const isValid = questions.every(q => q.trim() !== '');
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -159,6 +163,12 @@ export function QuestionEditor({ category, questions: initialQuestions, onSave, 
             </div>
 
             <div className="space-y-3">
+              {questions.length === 0 && (
+                <div className="bg-orange-50 border border-orange-200 rounded-xl p-8 text-center">
+                  <p className="text-orange-600 font-medium mb-2">まだ質問がありません</p>
+                  <p className="text-sm text-orange-500">上の「質問を追加」ボタンをクリックして最初の質問を追加してください</p>
+                </div>
+              )}
               {questions.map((question, index) => (
                 <div
                   key={index}
@@ -166,9 +176,8 @@ export function QuestionEditor({ category, questions: initialQuestions, onSave, 
                   onDragStart={() => handleDragStart(index)}
                   onDragOver={(e) => handleDragOver(e, index)}
                   onDragEnd={handleDragEnd}
-                  className={`bg-white rounded-xl border border-[#D4D1CC] p-4 transition-all ${
-                    draggedIndex === index ? 'opacity-50' : 'opacity-100'
-                  }`}
+                  className={`bg-white rounded-xl border border-[#D4D1CC] p-4 transition-all ${draggedIndex === index ? 'opacity-50' : 'opacity-100'
+                    }`}
                 >
                   <div className="flex items-start gap-3">
                     {/* Drag Handle */}
