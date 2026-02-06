@@ -13,33 +13,66 @@ DEFAULT_CATEGORIES = {"academic", "technical", "custom"}
 
 
 @router.get("/templates")
+@router.get("/templates")
 async def get_templates():
     """利用可能なカテゴリ一覧を取得"""
-    # テンプレートと質問を結合して取得
-    response = supabase.table("templates").select("id, category_id, name, description").execute()
+    # 1. テンプレートと質問数を一括取得 (questionsのリレーションを利用)
+    # Supabaseのembedding機能を使って質問数を取得したいが、count機能との併用が難しいため
+    # まずテンプレートを取得し、並列または効率的なクエリでデータを補完する方針をとる
     
+    # テンプレート取得
+    templates_response = supabase.table("templates").select("id, category_id, name, description").execute()
+    categories_data = templates_response.data
+    
+    if not categories_data:
+        return {"categories": []}
+
+    # 2. 全カテゴリIDとテンプレートIDのリスト作成
+    category_ids = [c["category_id"] for c in categories_data]
+    template_ids = [c["id"] for c in categories_data]
+    
+    # 3. 質問データを一括取得 (template_idのみ)
+    # count取得のために全件取得は非効率だが、現状の規模なら許容範囲
+    # 将来的にはRPC (Stored Procedure) での集計が望ましい
+    questions_response = supabase.table("questions").select("template_id").in_("template_id", template_ids).execute()
+    
+    # 質問数をメモリ上で集計
+    question_counts = {}
+    for q in questions_response.data:
+        tid = q["template_id"]
+        question_counts[tid] = question_counts.get(tid, 0) + 1
+        
+    # 4. カテゴリタグを一括取得
+    cat_tags_response = supabase.table("category_tags").select("category_id, tag_id").in_("category_id", category_ids).execute()
+    
+    # タグIDリスト作成
+    all_tag_ids = list(set([ct["tag_id"] for ct in cat_tags_response.data]))
+    
+    # 5. タグ詳細を一括取得
+    tags_map = {}
+    if all_tag_ids:
+        tags_response = supabase.table("tags").select("id, name, color").in_("id", all_tag_ids).execute()
+        for t in tags_response.data:
+            tags_map[t["id"]] = {"id": t["id"], "name": t["name"], "color": t["color"]}
+            
+    # カテゴリ毎のタグリスト構築
+    category_tags_map = {cid: [] for cid in category_ids}
+    for ct in cat_tags_response.data:
+        cid = ct["category_id"]
+        tid = ct["tag_id"]
+        if tid in tags_map:
+            category_tags_map[cid].append(tags_map[tid])
+    
+    # 6. レスポンス構築
     categories = []
-    for row in response.data:
-        # 各カテゴリの質問数を取得
-        questions_response = supabase.table("questions").select("id", count="exact").eq("template_id", row["id"]).execute()
-        question_count = questions_response.count if questions_response.count is not None else 0
-        
-        # 各カテゴリのタグを取得
-        category_tags_response = supabase.table("category_tags").select("tag_id").eq("category_id", row["category_id"]).execute()
-        tag_ids = [ct["tag_id"] for ct in category_tags_response.data]
-        
-        tags = []
-        if tag_ids:
-            tags_response = supabase.table("tags").select("id, name, color").in_("id", tag_ids).execute()
-            tags = [{"id": t["id"], "name": t["name"], "color": t["color"]} for t in tags_response.data]
-        
+    for row in categories_data:
         categories.append({
             "id": row["category_id"],
             "name": row["name"],
             "description": row.get("description"),
             "is_default": row["category_id"] in DEFAULT_CATEGORIES,
-            "question_count": question_count,
-            "tags": tags
+            "question_count": question_counts.get(row["id"], 0),
+            "tags": category_tags_map.get(row["category_id"], [])
         })
     
     return {"categories": categories}
