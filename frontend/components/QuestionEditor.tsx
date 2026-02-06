@@ -94,21 +94,21 @@ export function QuestionEditor({ category, questions: initialQuestions, onSave, 
   const isValid = questions.every(q => q.trim() !== '');
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-theme-bg">
       {/* Header */}
-      <header className="bg-white border-b border-[#D4D1CC] px-8 py-6">
+      <header className="bg-theme-surface border-b border-theme-border px-8 py-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <button
                 onClick={onBack}
-                className="flex items-center gap-2 px-4 py-2 text-[#6B6560] hover:text-[#2D2D2D] transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>戻る</span>
               </button>
               <div>
-                <h1 className="text-xl font-semibold text-[#2D2D2D] flex items-center gap-2">
+                <h1 className="text-xl font-semibold text-theme-foreground flex items-center gap-2">
                   <span>{info.icon}</span>
                   <span>{info.title}の質問を編集</span>
                 </h1>
@@ -117,7 +117,7 @@ export function QuestionEditor({ category, questions: initialQuestions, onSave, 
             <div className="flex items-center gap-3">
               <button
                 onClick={onGoHome}
-                className="flex items-center gap-2 px-4 py-2 text-[#6B6560] hover:text-[#2D2D2D] transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground transition-colors"
               >
                 <Home className="w-4 h-4" />
                 <span>ホーム</span>
@@ -125,7 +125,7 @@ export function QuestionEditor({ category, questions: initialQuestions, onSave, 
               {hasChanges && (
                 <button
                   onClick={handleReset}
-                  className="px-4 py-2 text-[#6B6560] hover:text-[#2D2D2D] transition-colors"
+                  className="px-4 py-2 text-theme-foreground-muted hover:text-theme-foreground transition-colors"
                 >
                   リセット
                 </button>
@@ -133,14 +133,14 @@ export function QuestionEditor({ category, questions: initialQuestions, onSave, 
               <button
                 onClick={handleSave}
                 disabled={!isValid || !hasChanges}
-                className="flex items-center gap-2 px-6 py-3 bg-[#8B8680] text-white rounded-xl hover:bg-[#6B6560] transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                className="flex items-center gap-2 px-6 py-3 bg-theme-primary text-theme-primary-foreground rounded-xl hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
               >
                 <Save className="w-4 h-4" />
                 <span>保存</span>
               </button>
             </div>
           </div>
-          <p className="text-sm text-[#6B6560]">{info.description}</p>
+          <p className="text-sm text-theme-foreground-muted">{info.description}</p>
         </div>
       </header>
 
@@ -150,12 +150,12 @@ export function QuestionEditor({ category, questions: initialQuestions, onSave, 
           {/* Questions List */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-[#2D2D2D]">
+              <h2 className="text-lg font-semibold text-theme-foreground">
                 質問リスト（{questions.length}個）
               </h2>
               <button
                 onClick={handleAddQuestion}
-                className="flex items-center gap-2 px-4 py-2 bg-[#E8E6E3] text-[#8B8680] rounded-lg hover:bg-[#8B8680] hover:text-white transition-colors font-medium"
+                className="flex items-center gap-2 px-4 py-2 bg-theme-muted text-theme-muted-foreground rounded-lg hover:bg-theme-primary hover:text-theme-primary-foreground transition-colors font-medium"
               >
                 <Plus className="w-4 h-4" />
                 <span>質問を追加</span>
@@ -176,17 +176,17 @@ export function QuestionEditor({ category, questions: initialQuestions, onSave, 
                   onDragStart={() => handleDragStart(index)}
                   onDragOver={(e) => handleDragOver(e, index)}
                   onDragEnd={handleDragEnd}
-                  className={`bg-white rounded-xl border border-[#D4D1CC] p-4 transition-all ${draggedIndex === index ? 'opacity-50' : 'opacity-100'
+                  className={`bg-theme-surface rounded-xl border border-theme-border p-4 transition-all ${draggedIndex === index ? 'opacity-50' : 'opacity-100'
                     }`}
                 >
                   <div className="flex items-start gap-3">
                     {/* Drag Handle */}
-                    <div className="flex-shrink-0 mt-3 cursor-move text-[#A8A8A8] hover:text-[#6B6560]">
+                    <div className="flex-shrink-0 mt-3 cursor-move text-theme-foreground-muted hover:text-theme-foreground">
                       <GripVertical className="w-5 h-5" />
                     </div>
 
                     {/* Question Number */}
-                    <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-[#E8E6E3] flex items-center justify-center text-[#8B8680] font-semibold mt-2">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-theme-muted flex items-center justify-center text-theme-muted-foreground font-semibold mt-2">
                       {index + 1}
                     </div>
 
@@ -194,7 +194,7 @@ export function QuestionEditor({ category, questions: initialQuestions, onSave, 
                     <textarea
                       value={question}
                       onChange={(e) => handleQuestionChange(index, e.target.value)}
-                      className="flex-1 px-4 py-2 border border-[#D4D1CC] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8B8680] focus:border-transparent resize-none min-h-[60px]"
+                      className="flex-1 px-4 py-2 bg-theme-bg border border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-theme-primary focus:border-transparent resize-none min-h-[60px] text-theme-foreground placeholder:text-theme-muted-foreground"
                       placeholder="質問を入力してください"
                       rows={2}
                     />
@@ -203,7 +203,7 @@ export function QuestionEditor({ category, questions: initialQuestions, onSave, 
                     <button
                       onClick={() => handleRemoveQuestion(index)}
                       disabled={questions.length === 1}
-                      className="flex-shrink-0 mt-2 p-2 text-[#A8A8A8] hover:text-red-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="flex-shrink-0 mt-2 p-2 text-theme-foreground-muted hover:text-theme-error transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                       title={questions.length === 1 ? '最低1つの質問が必要です' : '削除'}
                     >
                       <Trash2 className="w-5 h-5" />
@@ -215,9 +215,9 @@ export function QuestionEditor({ category, questions: initialQuestions, onSave, 
           </div>
 
           {/* Tips */}
-          <div className="bg-[#E8E6E3] rounded-xl p-6">
-            <h3 className="font-semibold text-[#2D2D2D] mb-2">💡 ヒント</h3>
-            <ul className="text-sm text-[#6B6560] space-y-1">
+          <div className="bg-theme-muted rounded-xl p-6">
+            <h3 className="font-semibold text-theme-foreground mb-2">💡 ヒント</h3>
+            <ul className="text-sm text-theme-foreground-muted space-y-1">
               <li>• 質問はドラッグして順序を変更できます</li>
               <li>• 具体的で明確な質問を設定すると、より良い結果が得られます</li>
               <li>• 3〜8個の質問が最適です</li>
