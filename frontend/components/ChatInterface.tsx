@@ -64,7 +64,7 @@ export function ChatInterface({
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="bg-theme-surface border-b border-theme-border">
+      <header className="bg-theme-surface border-b border-theme-border sticky top-0 z-30 shadow-sm">
         <div className="px-8 py-6">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-semibold text-theme-foreground">

@@ -96,7 +96,7 @@ export function QuestionEditor({ category, questions: initialQuestions, onSave, 
   return (
     <div className="min-h-screen flex flex-col bg-theme-bg">
       {/* Header */}
-      <header className="bg-theme-surface border-b border-theme-border px-8 py-6">
+      <header className="bg-theme-surface border-b border-theme-border px-8 py-6 sticky top-0 z-30 shadow-sm">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
